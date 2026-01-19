@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Justice Minds Email Intelligence Dashboard">
+    <meta name="theme-color" content="#0d1117">
+    <title>Justice Minds - Dashboard</title>
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="css/vars.css" as="style">
+    <link rel="preload" href="css/main.css" as="style">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/vars.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <!-- Chart.js - defer for faster initial paint -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+    <div class="layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <header class="sidebar__header">
+                <h2 class="sidebar__title">Institutions</h2>
+                <button class="sidebar__toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+            </header>
+
+            <div class="sidebar__search">
+                <input type="search" id="searchInput" class="sidebar__input" placeholder="Search emails..." aria-label="Search">
+            </div>
+
+            <div class="sidebar__list" id="groupList"></div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+            <header class="main__header">
+                <h1 class="main__title"><span>Justice Minds</span> Email Intelligence</h1>
+                <time class="main__meta" datetime="2026-01-18">Updated: Jan 18, 2026</time>
+            </header>
+
+            <!-- STATS -->
+            <section class="stats" aria-label="Statistics">
+                <article class="stat">
+                    <div class="stat__label">Open Rate</div>
+                    <div class="stat__value">86.5%</div>
+                    <div class="stat__sub">vs 21% avg</div>
+                </article>
+                <article class="stat">
+                    <div class="stat__label">Emails</div>
+                    <div class="stat__value" id="totalEmails">-</div>
+                    <div class="stat__sub">tracked</div>
+                </article>
+                <article class="stat">
+                    <div class="stat__label">Opens</div>
+                    <div class="stat__value" id="totalOpens">-</div>
+                    <div class="stat__sub">cumulative</div>
+                </article>
+                <article class="stat">
+                    <div class="stat__label">Clicks</div>
+                    <div class="stat__value" id="totalClicks">-</div>
+                    <div class="stat__sub">interactions</div>
+                </article>
+                <article class="stat">
+                    <div class="stat__label">Groups</div>
+                    <div class="stat__value" id="totalGroups">-</div>
+                    <div class="stat__sub">tracked</div>
+                </article>
+            </section>
+
+            <!-- CHARTS -->
+            <section class="charts" aria-label="Charts">
+                <article class="chart">
+                    <h3 class="chart__title">Opens by Institution</h3>
+                    <canvas id="chartOpens"></canvas>
+                </article>
+                <article class="chart">
+                    <h3 class="chart__title">Emails by Institution</h3>
+                    <canvas id="chartCount"></canvas>
+                </article>
+            </section>
+
+            <!-- DETAIL PANEL -->
+            <section class="detail" id="detailPanel" aria-label="Email details">
+                <header class="detail__header">
+                    <h2 class="detail__subject" id="dSubject">Select an email</h2>
+                    <span class="badge" id="dBadge">-</span>
+                </header>
+
+                <div class="detail__stats">
+                    <div class="detail__stat">
+                        <div class="detail__stat-val" id="dOpens">0</div>
+                        <div class="detail__stat-label">Opens</div>
+                    </div>
+                    <div class="detail__stat">
+                        <div class="detail__stat-val" id="dClicks">0</div>
+                        <div class="detail__stat-label">Clicks</div>
+                    </div>
+                    <div class="detail__stat">
+                        <div class="detail__stat-val" id="dPdf">0</div>
+                        <div class="detail__stat-label">PDF Views</div>
+                    </div>
+                    <div class="detail__stat">
+                        <div class="detail__stat-val" id="dEngagement">0%</div>
+                        <div class="detail__stat-label">Engagement</div>
+                    </div>
+                </div>
+
+                <div class="progress">
+                    <div class="progress__label">Engagement Level</div>
+                    <div class="progress__track">
+                        <div class="progress__fill" id="engagementBar"></div>
+                    </div>
+                </div>
+
+                <div class="meta">
+                    <div class="meta__section">
+                        <h4>Chain of Custody</h4>
+                        <p><strong>Email:</strong> <span class="meta__link" id="dEmail">-</span></p>
+                        <p><strong>Recipient:</strong> <span id="dRecipient">-</span></p>
+                    </div>
+                    <div class="meta__section">
+                        <h4>Timeline</h4>
+                        <p><strong>Sent:</strong> <span id="dSent">-</span></p>
+                        <p><strong>Last Opened:</strong> <span id="dLastOpen">-</span></p>
+                        <p><strong>Institution:</strong> <span id="dInstitution">-</span></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Data -->
+    <script src="email_data.js"></script>
+
+    <!-- App -->
+    <script src="js/app.js" defer></script>
+
+    <!-- Mobile sidebar toggle (inline for speed) -->
+    <script>
+        document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('sidebar--expanded');
+        });
+    </script>
+</body>
+</html>
