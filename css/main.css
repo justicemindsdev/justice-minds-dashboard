@@ -492,7 +492,7 @@ body {
 }
 
 .timeline__list {
-    max-height: 300px;
+    max-height: 500px;
     overflow-y: auto;
 }
 
@@ -573,6 +573,140 @@ body {
 .recipient-tag--opened {
     background: rgba(35, 134, 54, 0.2);
     color: var(--c-green);
+}
+
+/* === RECIPIENT ROW (Sidebar) === */
+.recipient-row {
+    display: flex;
+    align-items: center;
+    padding: var(--s-3) var(--s-4);
+    padding-left: calc(var(--s-4) + 32px);
+    border-bottom: 1px solid var(--c-border-2);
+    cursor: pointer;
+    gap: var(--s-3);
+    transition: background var(--t-fast);
+}
+
+.recipient-row:hover { background: var(--c-bg-2); }
+
+.recipient-row--active {
+    background: rgba(31, 111, 235, 0.1);
+    border-left: 3px solid var(--c-link);
+}
+
+.recipient-row--all-read { border-left: 3px solid var(--c-green); }
+.recipient-row--partial { border-left: 3px solid var(--c-yellow); }
+.recipient-row--unread { border-left: 3px solid var(--c-red); }
+
+.recipient-row__num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--c-border-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--f-xs);
+    font-weight: 600;
+    color: var(--c-text-2);
+    flex-shrink: 0;
+}
+
+.recipient-row__info { flex: 1; min-width: 0; }
+
+.recipient-row__email {
+    font-size: var(--f-base);
+    font-weight: 600;
+    color: var(--c-link);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recipient-row__stats {
+    font-size: var(--f-sm);
+    color: var(--c-text-2);
+}
+
+.recipient-row__opens {
+    font-size: var(--f-md);
+    font-weight: 600;
+    color: var(--c-link);
+    flex-shrink: 0;
+}
+
+/* === EMAIL GRID (Detail Panel) === */
+.email-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s-3);
+}
+
+@media (min-width: 640px) {
+    .email-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+    .email-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.email-card {
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-lg);
+    padding: var(--s-4);
+    cursor: pointer;
+    transition: all var(--t-fast);
+}
+
+.email-card:hover {
+    background: var(--c-bg-2);
+    border-color: var(--c-link);
+    transform: translateY(-2px);
+}
+
+.email-card--opened {
+    border-left: 4px solid var(--c-green);
+}
+
+.email-card--unread {
+    border-left: 4px solid var(--c-red);
+    background: rgba(248, 81, 73, 0.05);
+}
+
+.email-card__status {
+    font-size: var(--f-xs);
+    font-weight: 600;
+    margin-bottom: var(--s-2);
+}
+
+.email-card--opened .email-card__status { color: var(--c-green); }
+.email-card--unread .email-card__status { color: var(--c-red); }
+
+.email-card__subject {
+    font-size: var(--f-md);
+    font-weight: 600;
+    color: var(--c-text);
+    margin-bottom: var(--s-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.email-card__meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--f-sm);
+    color: var(--c-text-2);
+    gap: var(--s-2);
+}
+
+.email-card__last {
+    font-size: var(--f-xs);
+    color: var(--c-text-3);
+    margin-top: var(--s-2);
 }
 
 /* === INSTITUTION COLORS === */

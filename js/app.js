@@ -66,8 +66,11 @@
     }
 
     // === RENDER ===
-    function groupHeader(group, count, opens, idx) {
+    function groupHeader(group, count, opens, idx, recipientCount) {
         const cfg = CONFIG.INSTITUTIONS[group] || CONFIG.INSTITUTIONS['Other'];
+        const statsText = recipientCount
+            ? `${recipientCount} recipients · ${count} emails · ${fmt(opens)} opens`
+            : `${count} emails · ${fmt(opens)} opens`;
         return `
             <div class="group__header" data-idx="${idx}">
                 <svg class="group__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -76,31 +79,57 @@
                 <div class="group__icon ${cfg.cls}">${cfg.icon}</div>
                 <div class="group__info">
                     <div class="group__name">${group}</div>
-                    <div class="group__stats">${count} emails · ${fmt(opens)} opens</div>
+                    <div class="group__stats">${statsText}</div>
                 </div>
             </div>`;
     }
 
-    function emailItem(e, group, idx) {
-        const date = (e.sent || '').split(' ')[0];
+    // Group emails by recipient email address
+    function groupByRecipient(emails) {
+        const byRecipient = {};
+        emails.forEach(e => {
+            const key = (e.email || e.recipient || 'unknown').toLowerCase();
+            if (!byRecipient[key]) {
+                byRecipient[key] = {
+                    email: e.email || e.recipient,
+                    emails: [],
+                    totalOpens: 0,
+                    totalClicks: 0,
+                    hasUnread: false
+                };
+            }
+            byRecipient[key].emails.push(e);
+            byRecipient[key].totalOpens += e.opens || 0;
+            byRecipient[key].totalClicks += e.clicks || 0;
+            if (!e.lastOpened) byRecipient[key].hasUnread = true;
+        });
+        // Sort by total opens descending
+        return Object.values(byRecipient).sort((a, b) => b.totalOpens - a.totalOpens);
+    }
+
+    function recipientRow(recipient, group, ridx) {
+        const emailCount = recipient.emails.length;
+        const openedCount = recipient.emails.filter(e => e.lastOpened).length;
+        const status = openedCount === emailCount ? 'all-read' : openedCount > 0 ? 'partial' : 'unread';
+
         return `
-            <div class="email-item" data-group="${group}" data-id="${e.id}">
-                <span class="email-item__num">${idx + 1}</span>
-                <div class="email-item__info">
-                    <div class="email-item__addr">${e.email || e.recipient || '-'}</div>
-                    <div class="email-item__subject">${e.subject || '-'}</div>
-                    <div class="email-item__meta">${date} · ${e.source || ''}</div>
+            <div class="recipient-row recipient-row--${status}" data-group="${group}" data-recipient-key="${recipient.email.toLowerCase()}">
+                <span class="recipient-row__num">${ridx + 1}</span>
+                <div class="recipient-row__info">
+                    <div class="recipient-row__email">${recipient.email}</div>
+                    <div class="recipient-row__stats">${emailCount} email${emailCount > 1 ? 's' : ''} · ${openedCount}/${emailCount} opened</div>
                 </div>
-                <span class="email-item__opens">${e.opens}</span>
+                <span class="recipient-row__opens">${recipient.totalOpens}</span>
             </div>`;
     }
 
     function groupFull(group, emails, opens, idx) {
+        const recipients = groupByRecipient(emails);
         return `
             <div class="group">
-                ${groupHeader(group, emails.length, opens, idx)}
+                ${groupHeader(group, emails.length, opens, idx, recipients.length)}
                 <div class="group__content" data-content="${idx}">
-                    ${emails.map((e, i) => emailItem(e, group, i)).join('')}
+                    ${recipients.map((r, i) => recipientRow(r, group, i)).join('')}
                 </div>
             </div>`;
     }
@@ -192,8 +221,8 @@
             }).join('');
 
             // Bind clicks
-            list.querySelectorAll('.email-item').forEach(el => {
-                el.onclick = () => this.selectEmail(el.dataset.group, +el.dataset.id);
+            list.querySelectorAll('.recipient-row').forEach(el => {
+                el.onclick = () => this.selectRecipient(el.dataset.group, el.dataset.recipientKey);
             });
             list.querySelectorAll('.group__header').forEach(el => {
                 el.onclick = () => this.toggleGroup(+el.dataset.idx);
@@ -226,14 +255,109 @@
             $$('.group__header').forEach(el => el.classList.add('group__header--open'));
         }
 
-        selectEmail(group, id) {
-            const email = (this.data[group] || []).find(e => e.id === id);
-            if (!email) return;
+        selectRecipient(group, recipientKey) {
+            // Find all emails for this recipient
+            const emails = (this.data[group] || []).filter(e =>
+                (e.email || e.recipient || '').toLowerCase() === recipientKey
+            );
+            if (!emails.length) return;
 
-            $$('.email-item').forEach(el => el.classList.remove('email-item--active'));
-            $(`[data-group="${group}"][data-id="${id}"]`)?.classList.add('email-item--active');
+            // Mark active
+            $$('.recipient-row').forEach(el => el.classList.remove('recipient-row--active'));
+            $(`[data-recipient-key="${recipientKey}"]`)?.classList.add('recipient-row--active');
 
-            this.renderDetail(email, group);
+            this.renderRecipientDetail(emails, group, recipientKey);
+        }
+
+        renderRecipientDetail(emails, group, recipientKey) {
+            const panel = $('#detailPanel');
+            panel.classList.add('detail--active');
+
+            const totalOpens = emails.reduce((sum, e) => sum + (e.opens || 0), 0);
+            const totalClicks = emails.reduce((sum, e) => sum + (e.clicks || 0), 0);
+            const openedCount = emails.filter(e => e.lastOpened).length;
+
+            // Update header
+            $('#dSubject').textContent = recipientKey;
+            const badge = getBadge(totalOpens);
+            const badgeEl = $('#dBadge');
+            badgeEl.textContent = `${openedCount}/${emails.length} opened`;
+            badgeEl.className = 'badge ' + (openedCount === emails.length ? 'badge--high' : openedCount > 0 ? 'badge--medium' : 'badge--low');
+
+            // Update stats
+            $('#dOpens').textContent = totalOpens;
+            $('#dClicks').textContent = totalClicks;
+            $('#dPdf').textContent = emails.reduce((sum, e) => sum + (e.pdfViews || 0), 0);
+            const pct = Math.min(100, Math.round((totalOpens / this.stats.maxOpens) * 100));
+            $('#dEngagement').textContent = pct + '%';
+            $('#engagementBar').style.width = pct + '%';
+
+            // Update meta
+            $('#dEmail').textContent = recipientKey;
+            $('#dRecipient').textContent = emails[0].recipient || recipientKey;
+            $('#dInstitution').textContent = group;
+            $('#dSent').textContent = `${emails.length} emails`;
+            $('#dLastOpen').textContent = emails.filter(e => e.lastOpened).map(e => e.lastOpened).sort().pop() || 'Never';
+            $('#dSource').textContent = [...new Set(emails.map(e => e.source))].join(', ') || '-';
+
+            // Render email grid in timeline section
+            const timelineList = $('#timelineList');
+            timelineList.innerHTML = `
+                <div class="email-grid">
+                    ${emails.map(e => {
+                        const isOpened = !!e.lastOpened;
+                        const date = (e.sent || '').split(' ')[0];
+                        return `
+                            <div class="email-card email-card--${isOpened ? 'opened' : 'unread'}" data-email-id="${e.id}" data-group="${group}">
+                                <div class="email-card__status">${isOpened ? '&#128065; Opened' : '&#128233; Unread'}</div>
+                                <div class="email-card__subject">${e.subject || '-'}</div>
+                                <div class="email-card__meta">
+                                    <span>Sent: ${date}</span>
+                                    <span>${e.opens} opens</span>
+                                </div>
+                                ${e.lastOpened ? `<div class="email-card__last">Last: ${e.lastOpened}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            // Bind card clicks
+            timelineList.querySelectorAll('.email-card').forEach(card => {
+                card.onclick = () => {
+                    const email = emails.find(e => e.id === +card.dataset.emailId);
+                    if (email) this.renderEmailDetail(email, group);
+                };
+            });
+
+            // Hide certificate section for recipient view
+            $('#certLinkSection').style.display = 'none';
+            $('#recipientsSection').style.display = 'none';
+        }
+
+        renderEmailDetail(e, group) {
+            // When clicking a specific email card, show its full details
+            $('#dSubject').textContent = e.subject || '-';
+            const badge = getBadge(e.opens);
+            const badgeEl = $('#dBadge');
+            badgeEl.textContent = badge.text;
+            badgeEl.className = 'badge ' + badge.cls;
+
+            $('#dOpens').textContent = e.opens;
+            $('#dClicks').textContent = e.clicks;
+            $('#dPdf').textContent = e.pdfViews || 0;
+            $('#dEmail').textContent = e.email || e.recipient || '-';
+            $('#dRecipient').textContent = e.recipient || '-';
+            $('#dSent').textContent = e.sent || '-';
+            $('#dLastOpen').textContent = e.lastOpened || '-';
+            $('#dInstitution').textContent = group;
+            $('#dSource').textContent = e.source || '-';
+
+            const pct = Math.min(100, Math.round((e.opens / this.stats.maxOpens) * 100));
+            $('#dEngagement').textContent = pct + '%';
+            $('#engagementBar').style.width = pct + '%';
+
+            this.renderTimeline(e);
         }
 
         renderDetail(e, group) {
