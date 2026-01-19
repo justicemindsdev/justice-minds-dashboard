@@ -269,12 +269,35 @@
             const certLinkSection = $('#certLinkSection');
             const certLink = $('#certLink');
 
-            // Find matching certificate by subject
+            // Find matching certificate using multiple signals
             const certs = window.certificateData || [];
-            const cert = certs.find(c =>
-                c.subject && email.subject &&
-                c.subject.toLowerCase().includes(email.subject.toLowerCase().substring(0, 30))
-            );
+            const emailAddr = (email.email || '').toLowerCase();
+            const emailSubject = (email.subject || '').toLowerCase();
+
+            const cert = certs.find(c => {
+                // Match by recipient email
+                const certRecipients = (c.delivered_to || []).map(r => r.email.toLowerCase());
+                if (emailAddr && certRecipients.some(r => r.includes(emailAddr) || emailAddr.includes(r))) {
+                    // Also check subject has some overlap (at least 20 chars match)
+                    const certSubject = (c.subject || '').toLowerCase();
+                    if (emailSubject && certSubject) {
+                        const words = emailSubject.split(/\s+/).filter(w => w.length > 4);
+                        if (words.some(w => certSubject.includes(w))) return true;
+                    }
+                }
+                // Match by subject similarity
+                if (emailSubject && c.subject) {
+                    const certSubject = c.subject.toLowerCase();
+                    // Check if significant portion matches
+                    const subjectWords = emailSubject.split(/\s+/).filter(w => w.length > 5);
+                    const matchCount = subjectWords.filter(w => certSubject.includes(w)).length;
+                    if (matchCount >= 3) return true;
+                    // Direct substring match
+                    if (certSubject.includes(emailSubject.substring(0, 40))) return true;
+                    if (emailSubject.includes(certSubject.substring(0, 40))) return true;
+                }
+                return false;
+            });
 
             // Show certificate PDF link if available
             if (cert && cert.pdf_url) {
