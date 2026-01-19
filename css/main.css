@@ -448,6 +448,104 @@ body {
 
 .meta__link { color: var(--c-link); }
 
+/* === TIMELINE === */
+.timeline {
+    margin-top: var(--s-4);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--c-border);
+}
+
+.timeline__title {
+    font-size: var(--f-sm);
+    color: var(--c-text-2);
+    text-transform: uppercase;
+    margin-bottom: var(--s-3);
+}
+
+.timeline__list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.timeline__empty {
+    font-size: var(--f-sm);
+    color: var(--c-text-3);
+    font-style: italic;
+}
+
+.timeline__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    padding: var(--s-2) 0;
+    border-bottom: 1px solid var(--c-border-2);
+}
+
+.timeline__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--f-xs);
+    flex-shrink: 0;
+}
+
+.timeline__icon--open { background: var(--c-green); color: #fff; }
+.timeline__icon--click { background: var(--c-blue); color: #fff; }
+.timeline__icon--sent { background: var(--c-purple); color: #fff; }
+
+.timeline__content { flex: 1; }
+
+.timeline__action {
+    font-size: var(--f-md);
+    color: var(--c-text);
+}
+
+.timeline__actor {
+    font-size: var(--f-sm);
+    color: var(--c-link);
+}
+
+.timeline__time {
+    font-size: var(--f-xs);
+    color: var(--c-text-3);
+}
+
+/* === RECIPIENTS === */
+.recipients {
+    margin-top: var(--s-4);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--c-border);
+}
+
+.recipients__title {
+    font-size: var(--f-sm);
+    color: var(--c-text-2);
+    text-transform: uppercase;
+    margin-bottom: var(--s-3);
+}
+
+.recipients__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+}
+
+.recipient-tag {
+    background: var(--c-bg-3);
+    padding: var(--s-1) var(--s-3);
+    border-radius: var(--r-md);
+    font-size: var(--f-sm);
+    color: var(--c-text);
+}
+
+.recipient-tag--opened {
+    background: rgba(35, 134, 54, 0.2);
+    color: var(--c-green);
+}
+
 /* === INSTITUTION COLORS === */
 .inst-westminster { background: #238636; }
 .inst-liverpool { background: #da3633; }

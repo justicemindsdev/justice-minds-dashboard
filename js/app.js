@@ -159,14 +159,11 @@
     // === APP ===
     class App {
         constructor() {
-            console.log('App initializing...');
-            console.log('window.emailGroups:', window.emailGroups);
-            console.log('window.emailData:', window.emailData ? Object.keys(window.emailData) : 'undefined');
             this.groups = window.emailGroups || [];
             this.data = window.emailData || {};
             this.totals = window.groupTotals || {};
+            this.certs = window.certificateData || [];
             this.stats = calcStats(this.groups, this.data);
-            console.log('Stats:', this.stats);
             this.init();
         }
 
@@ -250,6 +247,7 @@
             $('#dSent').textContent = e.sent || '-';
             $('#dLastOpen').textContent = e.lastOpened || '-';
             $('#dInstitution').textContent = group;
+            $('#dSource').textContent = e.source || '-';
 
             const pct = Math.min(100, Math.round((e.opens / this.stats.maxOpens) * 100));
             $('#dEngagement').textContent = pct + '%';
@@ -259,6 +257,62 @@
             const badgeEl = $('#dBadge');
             badgeEl.textContent = badge.text;
             badgeEl.className = 'badge ' + badge.cls;
+
+            // Render timeline from certificate data if available
+            this.renderTimeline(e);
+        }
+
+        renderTimeline(email) {
+            const timelineList = $('#timelineList');
+            const recipientsSection = $('#recipientsSection');
+            const recipientsList = $('#recipientsList');
+
+            // Find matching certificate by subject
+            const certs = window.certificateData || [];
+            const cert = certs.find(c =>
+                c.subject && email.subject &&
+                c.subject.toLowerCase().includes(email.subject.toLowerCase().substring(0, 30))
+            );
+
+            if (cert && cert.timeline && cert.timeline.length > 0) {
+                // Render timeline
+                timelineList.innerHTML = cert.timeline.map(event => `
+                    <div class="timeline__item">
+                        <div class="timeline__icon timeline__icon--${event.type === 'opened' ? 'open' : 'click'}">
+                            ${event.type === 'opened' ? '&#128065;' : '&#128279;'}
+                        </div>
+                        <div class="timeline__content">
+                            <div class="timeline__action">${event.type === 'opened' ? 'Opened' : 'Link clicked'}</div>
+                            <div class="timeline__actor">${event.actor}</div>
+                            <div class="timeline__time">${event.date} at ${event.time}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Render recipients if multiple
+                if (cert.delivered_to && cert.delivered_to.length > 1) {
+                    recipientsSection.style.display = 'block';
+                    recipientsList.innerHTML = cert.delivered_to.map(r => {
+                        const hasOpened = cert.timeline.some(t =>
+                            t.actor.toLowerCase().includes(r.email.toLowerCase()) ||
+                            (r.name && t.actor.toLowerCase().includes(r.name.toLowerCase()))
+                        );
+                        return `<span class="recipient-tag ${hasOpened ? 'recipient-tag--opened' : ''}">${r.name || r.email}</span>`;
+                    }).join('');
+                } else {
+                    recipientsSection.style.display = 'none';
+                }
+            } else {
+                // No certificate data - show placeholder
+                timelineList.innerHTML = `
+                    <p class="timeline__empty">No detailed timeline available.</p>
+                    <p class="timeline__empty" style="margin-top: 8px; font-size: 11px;">
+                        Summary: ${email.opens} opens, ${email.clicks} clicks
+                        ${email.lastOpened ? '<br>Last: ' + email.lastOpened : ''}
+                    </p>
+                `;
+                recipientsSection.style.display = 'none';
+            }
         }
     }
 
