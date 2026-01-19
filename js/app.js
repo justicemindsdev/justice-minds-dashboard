@@ -159,10 +159,14 @@
     // === APP ===
     class App {
         constructor() {
+            console.log('App initializing...');
+            console.log('window.emailGroups:', window.emailGroups);
+            console.log('window.emailData:', window.emailData ? Object.keys(window.emailData) : 'undefined');
             this.groups = window.emailGroups || [];
             this.data = window.emailData || {};
             this.totals = window.groupTotals || {};
             this.stats = calcStats(this.groups, this.data);
+            console.log('Stats:', this.stats);
             this.init();
         }
 
