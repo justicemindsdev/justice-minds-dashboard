@@ -448,6 +448,35 @@ body {
 
 .meta__link { color: var(--c-link); }
 
+/* === CERTIFICATE LINK === */
+.cert-link {
+    margin-top: var(--s-4);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--c-border);
+}
+
+.cert-link__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-3) var(--s-4);
+    background: var(--c-green);
+    color: #fff;
+    border-radius: var(--r-md);
+    text-decoration: none;
+    font-size: var(--f-md);
+    font-weight: 600;
+    transition: background var(--t-fast);
+}
+
+.cert-link__btn:hover {
+    background: #2ea043;
+}
+
+.cert-link__btn svg {
+    flex-shrink: 0;
+}
+
 /* === TIMELINE === */
 .timeline {
     margin-top: var(--s-4);

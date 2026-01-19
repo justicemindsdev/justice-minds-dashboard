@@ -266,6 +266,8 @@
             const timelineList = $('#timelineList');
             const recipientsSection = $('#recipientsSection');
             const recipientsList = $('#recipientsList');
+            const certLinkSection = $('#certLinkSection');
+            const certLink = $('#certLink');
 
             // Find matching certificate by subject
             const certs = window.certificateData || [];
@@ -273,6 +275,14 @@
                 c.subject && email.subject &&
                 c.subject.toLowerCase().includes(email.subject.toLowerCase().substring(0, 30))
             );
+
+            // Show certificate PDF link if available
+            if (cert && cert.pdf_url) {
+                certLinkSection.style.display = 'block';
+                certLink.href = cert.pdf_url;
+            } else {
+                certLinkSection.style.display = 'none';
+            }
 
             if (cert && cert.timeline && cert.timeline.length > 0) {
                 // Render timeline
