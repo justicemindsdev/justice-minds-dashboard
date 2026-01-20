@@ -396,21 +396,11 @@
             // Find matching certificate using multiple signals
             const certs = window.certificateData || [];
             const emailAddr = (email.email || '').toLowerCase();
-            const emailSubject = (email.subject || '').toLowerCase();
 
             const cert = certs.find(c => {
-                // MUST match recipient - no exceptions
+                // Match by recipient email
                 const certRecipients = (c.delivered_to || []).map(r => r.email.toLowerCase());
-                const recipientMatch = emailAddr && certRecipients.some(r => r === emailAddr);
-                if (!recipientMatch) return false;
-
-                // Then check subject overlap
-                const certSubject = (c.subject || '').toLowerCase();
-                if (emailSubject && certSubject) {
-                    const words = emailSubject.split(/\s+/).filter(w => w.length > 4);
-                    if (words.some(w => certSubject.includes(w))) return true;
-                }
-                return false;
+                return emailAddr && certRecipients.some(r => r === emailAddr);
             });
 
             // Show certificate PDF link if available
